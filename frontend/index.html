@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Analyzer - AI Powered Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a; /* Dark Grey */
+            color: #e5e7eb; /* Light grey text */
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #3b82f6, #f97316); /* Blue to Orange */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 1.2rem;
+        }
+
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #2d2d2d;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            color: #9ca3af;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-indicator.connected {
+            background: #22c55e;
+        }
+
+        /* Card */
+        .glass-card {
+            background: #2d2d2d;
+            border: 1px solid #3b3b3b;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        /* Input */
+        .input-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e5e7eb;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 140px;
+            padding: 15px;
+            background: #1f1f1f;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #e5e7eb;
+            resize: vertical;
+        }
+
+        .text-input::placeholder {
+            color: #6b7280;
+        }
+
+        /* Button */
+        .analyze-btn {
+            background: linear-gradient(135deg, #3b82f6, #f97316);
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .analyze-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .sentiment-display {
+            text-align: center;
+            padding: 25px;
+            border-radius: 16px;
+            background: #1f1f1f;
+        }
+
+        .sentiment-emoji {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .sentiment-text {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .confidence-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Emotion Cards */
+        .emotion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .emotion-card {
+            background: #2d2d2d;
+            border: 1px solid #3b3b3b;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .emotion-emoji {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .emotion-name {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-bottom: 3px;
+        }
+
+        .emotion-score {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+
+        /* Examples */
+        .examples {
+            margin-top: 30px;
+        }
+
+        .examples h3 {
+            margin-bottom: 15px;
+            color: #e5e7eb;
+        }
+
+        .example-btn {
+            background: #1f1f1f;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 4px;
+        }
+
+        .example-btn:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Emotion Analyzer</h1>
+            <p>AI-Powered Emotional Intelligence Detection</p>
+            <div class="api-status" id="apiStatus">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Connecting to API...</span>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <label class="input-label" for="textInput">
+                Analyze your text's emotional tone
+            </label>
+            <textarea id="textInput" class="text-input" placeholder="Enter text here..."></textarea>
+            <button id="analyzeBtn" class="analyze-btn">🚀 Analyze Emotions</button>
+        </div>
+
+        <div id="results" class="results">
+            <div class="glass-card">
+                <div class="sentiment-display">
+                    <div id="dominantEmoji" class="sentiment-emoji"></div>
+                    <div id="dominantText" class="sentiment-text"></div>
+                    <div id="confidenceText" class="confidence-text"></div>
+                </div>
+                <div class="glass-card" style="margin-top: 20px;">
+                    <h3 style="text-align:center;">🎭 Emotion Breakdown</h3>
+                    <div id="emotionGrid" class="emotion-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>💡 Quick Examples</h3>
+            <button class="example-btn" onclick="setExample('This product exceeded all my expectations!')">😊 Happy</button>
+            <button class="example-btn" onclick="setExample('The presentation covered the main points.')">😐 Neutral</button>
+            <button class="example-btn" onclick="setExample('I am extremely disappointed with this service.')">😢 Sad</button>
+            <button class="example-btn" onclick="setExample('I cannot believe they did this!')">😠 Angry</button>
+            <button class="example-btn" onclick="setExample('I feel overwhelmed by all the deadlines.')">😨 Fearful</button>
+            <button class="example-btn" onclick="setExample('I cannot believe this happened!')">😲 Surprised</button>
+            <button class="example-btn" onclick="setExample('This movie was disgusting and revolting.')">🤢 Disgusted</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+
+        function setExample(text) {
+            document.getElementById("textInput").value = text;
+        }
+
+        document.getElementById("analyzeBtn").addEventListener("click", async () => {
+            const text = document.getElementById("textInput").value.trim();
+            if (!text) return;
+
+            const btn = document.getElementById("analyzeBtn");
+            btn.disabled = true;
+            btn.innerText = "Analyzing...";
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) throw new Error("API error");
+
+                const result = await response.json();
+
+                document.getElementById("results").style.display = "block";
+                document.getElementById("dominantEmoji").innerText = result.emotion.emoji;
+                document.getElementById("dominantText").innerText = result.emotion.name;
+                document.getElementById("confidenceText").innerText = "Breakdown shown below";
+
+                const grid = document.getElementById("emotionGrid");
+                grid.innerHTML = "";
+                for (const [emotion, score] of Object.entries(result.emotion_breakdown)) {
+                    grid.innerHTML += `
+                        <div class="emotion-card">
+                            <div class="emotion-emoji">${result.emotion.emoji}</div>
+                            <div class="emotion-name">${emotion}</div>
+                            <div class="emotion-score">${score}</div>
+                        </div>`;
+                }
+
+            } catch (err) {
+                alert("Error analyzing text: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 Analyze Emotions";
+            }
+        });
+    </script>
+</body>
+</html>
